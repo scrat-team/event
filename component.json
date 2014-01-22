@@ -1,0 +1,15 @@
+{
+  "name": "event",
+  "repo": "elf/event",
+  "description": "An event module with promise and multi-promise support",
+  "version": "0.1.0",
+  "keywords": ["event", "promise", "when"],
+  "scripts": ["index.js"],
+  "dependencies": {
+    "elf/lang": "*"
+  },
+  "remotes": [
+    "http://git.ucweb.local"
+  ],
+  "license": "MIT"
+}
