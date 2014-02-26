@@ -6,7 +6,7 @@
   "keywords": ["event", "promise", "when"],
   "scripts": ["index.js"],
   "dependencies": {
-    "elf/lang": "*"
+    "elf/lang": "0.1.0"
   },
   "remotes": [
     "http://git.ucweb.local"
