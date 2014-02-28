@@ -1,15 +1,35 @@
 /*jshint bitwise: false */
 'use strict';
 
-var _ = require('lang'),
+var type = require('type'),
+    each = require('each'),
+    extend = require('extend'),
     slice = Array.prototype.slice,
     ARGS_RE = /\S+/g;
 
 function mixin(obj, Constructor) {
     var instance = new Constructor(),
         mixto = obj && obj.prototype || obj || {};
-    _.extend(mixto, instance);
+    extend(mixto, instance);
     return obj;
+}
+
+function indexOf(arr, value, from) {
+    var len = arr.length >>> 0;
+
+    from = Number(from) || 0;
+    from = Math[from < 0 ? 'ceil' : 'floor'](from);
+    if (from < 0) {
+        from = Math.max(from + len, 0);
+    }
+
+    for (; from < len; from++) {
+        if (from in arr && arr[from] === value) {
+            return from;
+        }
+    }
+
+    return -1;
 }
 
 /**
@@ -31,7 +51,7 @@ var Handlers = (function () {
 
     function createOptions(options) {
         var object = optionsCache[options] = {};
-        _.each(options.match(ARGS_RE), function (flag) {
+        each(options.match(ARGS_RE), function (flag) {
             object[flag] = true;
         });
         return object;
@@ -43,7 +63,7 @@ var Handlers = (function () {
         //     with latest "memorized" values
         this.options = typeof options === 'string' ?
             optionsCache[options] || createOptions(options) :
-            _.extend({}, options);
+            extend({}, options);
 
         // handlers' list
         this.list = [];
@@ -94,11 +114,11 @@ var Handlers = (function () {
                 var start = this.list.length;
 
                 (function add(args) {
-                    _.each(args, function (arg) {
-                        var type = _.type(arg);
-                        if (type === 'function') {
+                    each(args, function (arg) {
+                        var t = type(arg);
+                        if (t === 'function') {
                             that.list.push(arg);
-                        } else if (arg && arg.length && type !== 'string') {
+                        } else if (arg && arg.length && t !== 'string') {
                             add(arg);
                         }
                     });
@@ -116,8 +136,8 @@ var Handlers = (function () {
 
         remove: function () {
             if (this.list) {
-                _.each(arguments, function (arg) {
-                    var index = _.indexOf(this.list, arg);
+                each(arguments, function (arg) {
+                    var index = indexOf(this.list, arg);
                     while (index > -1) {
                         this.list.splice(index, 1);
                         if (this.status === STATUS.FIRING) {
@@ -128,7 +148,7 @@ var Handlers = (function () {
                                 this.firingIndex--;
                             }
                         }
-                        index = _.indexOf(this.list, arg, index);
+                        index = indexOf(this.list, arg, index);
                     }
                 }, this);
             }
@@ -137,7 +157,7 @@ var Handlers = (function () {
 
         has: function (handler) {
             var list = this.list;
-            return handler ? _.indexOf(list, handler) > -1 :
+            return handler ? indexOf(list, handler) > -1 :
                 !!(list && list.length);
         },
 
@@ -215,7 +235,7 @@ var Promise = (function () {
         this.status = STATUS.INIT;
 
         // promise['done' | 'fail' | 'progress']
-        _.each(configs, function (cfg, i) {
+        each(configs, function (cfg, i) {
             var that = this,
                 handlers = this.handlers[i],
                 status = cfg[2];
@@ -247,9 +267,9 @@ var Promise = (function () {
             var args = arguments;
 
             // bind handler with promise['done' | 'fail' | 'progress']
-            _.each(configs, function (cfg, i) {
+            each(configs, function (cfg, i) {
                 var handler = args[i];
-                if (_.type(handler) === 'function') {
+                if (type(handler) === 'function') {
                     this[cfg[1]](handler);
                 }
             }, this);
@@ -264,7 +284,7 @@ var Promise = (function () {
     };
 
     // promise['resolve' | 'reject' | 'notify']
-    _.each(configs, function (cfg, i) {
+    each(configs, function (cfg, i) {
         prototype[cfg[0]] = function () {
             this.handlers[i].fireWith(this, arguments);
             return this;
@@ -298,7 +318,7 @@ var Promise = (function () {
             resolve = multiPromise.resolve;
         multiPromise._when = [];
         multiPromise._count = arguments.length;
-        _.each(arguments, function (promise, i) {
+        each(arguments, function (promise, i) {
             multiPromise._when.push(promise.always(function () {
                 if (!completed[i]) {
                     completed[i] = true;
@@ -313,13 +333,13 @@ var Promise = (function () {
 
         // 移除 multiPromise 中其他方法，只保留 then
         multiPromise.then = multiPromise.done;
-        _.each(['done', 'fail', 'progress', 'always',
+        each(['done', 'fail', 'progress', 'always',
             'resolve', 'reject', 'notify'], function (method) {
                 delete multiPromise[method];
             });
 
         // 混入 all、some、any 等方法
-        _.extend(multiPromise, multiPromiseMixin);
+        extend(multiPromise, multiPromiseMixin);
         return multiPromise;
     }
 
@@ -348,11 +368,11 @@ Event.prototype.on = function (events /*, handler1, handler2, ... */) {
         handlers.add.apply(handlers, args);
     };
     if (typeof(events) === 'string') {
-        _.each(events.match(ARGS_RE), function (event) {
+        each(events.match(ARGS_RE), function (event) {
             iterator.call(this, event, args);
         }, this);
     } else {
-        _.each(events, function(handler, event) {
+        each(events, function(handler, event) {
             iterator.call(this, event, [handler]);
         }, this);
     }
@@ -369,11 +389,11 @@ Event.prototype.off = function (events /*, handler1, handler2, ... */) {
         }
     };
     if (typeof(events) === 'string') {
-        _.each(events.match(ARGS_RE), function (event) {
+        each(events.match(ARGS_RE), function (event) {
             iterator.call(this, event, args);
         }, this);
     } else {
-        _.each(events, function(handler, event) {
+        each(events, function(handler, event) {
             iterator.call(this, event, [handler]);
         }, this);
     }
@@ -382,7 +402,7 @@ Event.prototype.off = function (events /*, handler1, handler2, ... */) {
 
 Event.prototype.trigger = function (events) {
     var args = slice.call(arguments, 1);
-    _.each(events.match(ARGS_RE), function (event) {
+    each(events.match(ARGS_RE), function (event) {
         var handlers = this.handlers[event];
         if (handlers) {
             handlers.fireWith(handlers, args);
