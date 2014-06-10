@@ -1,17 +1,14 @@
 {
   "name": "event",
-  "repo": "elf/event",
+  "repo": "scrat-team/event",
   "description": "An event module with promise and multi-promise support",
   "version": "0.1.0",
   "keywords": ["event", "promise", "when"],
   "scripts": ["index.js"],
   "dependencies": {
-    "elf/type": "0.1.0",
-    "elf/each": "0.1.0",
-    "elf/extend": "0.1.0"
+    "scrat-team/type": "0.1.0",
+    "scrat-team/each": "0.1.0",
+    "scrat-team/extend": "0.1.0"
   },
-  "remotes": [
-    "http://git.ucweb.local"
-  ],
   "license": "MIT"
 }
